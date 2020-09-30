@@ -521,9 +521,13 @@ open class Attributer {
             guard range.location != NSNotFound else { return self }
             let substring = self.attributedText.attributedSubstring(from: range)
             if substring.length > 0, let font = substring.attribute(NSAttributedString.Key.font, at: 0, effectiveRange:nil) as? UIFont {
-                self.attributedText.addAttribute(NSAttributedString.Key.font, value: UIFont(name: font.fontName, size: size)!, range: range)
+                self.attributedText.addAttribute(NSAttributedString.Key.font,
+                                                 value: font.withSize(size),
+                                                 range: range)
             } else {
-                self.attributedText.addAttribute(NSAttributedString.Key.font, value: UIFont.systemFont(ofSize: size), range: range)
+                self.attributedText.addAttribute(NSAttributedString.Key.font,
+                                                 value: UIFont.systemFont(ofSize: size),
+                                                 range: range)
             }
         }
         return self
@@ -535,8 +539,21 @@ open class Attributer {
      -parameter font: The UIFont that will be applied
      */
     open func font(_ font: UIFont?) -> Attributer {
-        if font != nil {
-            return fontName(font!.fontName).size(font!.pointSize)
+        guard let currentFont = font else {
+            return self
+        }
+        for range in self.ranges {
+            guard range.location != NSNotFound else { return self }
+            let substring = self.attributedText.attributedSubstring(from: range)
+            if substring.length > 0, let font = substring.attribute(NSAttributedString.Key.font, at: 0, effectiveRange:nil) as? UIFont {
+                self.attributedText.addAttribute(NSAttributedString.Key.font,
+                                                 value: font.withSize(currentFont.pointSize),
+                                                 range: range)
+            } else {
+                self.attributedText.addAttribute(NSAttributedString.Key.font,
+                                                 value: currentFont,
+                                                 range: range)
+            }
         }
         return self
     }
